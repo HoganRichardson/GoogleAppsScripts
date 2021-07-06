@@ -9,7 +9,7 @@
  */
 
 function onOpen() {
-  var menuEntries = [ {name: "Create Report from Template", functionName: "AutofillDocFromTemplate"}]
+  var menuEntries = [{ name: "Create Report from Template", functionName: "AutofillDocFromTemplate" }]
   var ss = SpreadsheetApp.getActiveSpreadsheet()
   ss.addMenu("Report", menuEntries)
 }
@@ -19,11 +19,11 @@ OUTPUT_FOLDER = ""
 
 function AutofillDocFromTemplate() {
   var namedRanges = SpreadsheetApp.getActiveSpreadsheet().getNamedRanges()
-  
+
   // Create Copy of Template
   var doc_filename = get_nr_value(namedRanges, "filename");
   var template_id = get_nr_value(namedRanges, "template_id");
-  
+
   var new_doc = copyDocument(template_id, OUTPUT_FOLDER, doc_filename);
   var doc = DocumentApp.openById(new_doc.getId());
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -37,7 +37,7 @@ function AutofillDocFromTemplate() {
       replaceText(n_range, doc)
     } else {
       /* Insert table range */
-      appendNamedRange(n_range, doc)    
+      appendNamedRange(n_range, doc)
     }
   }
 
@@ -47,12 +47,12 @@ function AutofillDocFromTemplate() {
   // Convert to DOCX and delete Google Doc
   exportAsDocx(doc_filename, new_doc.getId(), OUTPUT_FOLDER)
   DriveApp.getFileById(new_doc.getId()).setTrashed(true)
-  
+
   ss.toast("Report has been generated.")
 }
 
 function get_nr_value(namedRanges, name) {
-  for (var i = 0; i < namedRanges.length; i++) { 
+  for (var i = 0; i < namedRanges.length; i++) {
     if (namedRanges[i].getName() == name) {
       return namedRanges[i].getRange().getValue()
     }
@@ -61,7 +61,7 @@ function get_nr_value(namedRanges, name) {
 
 function copyDocument(source_id, destination_id, filename) {
   // Create Copy of Template in Destination
-  var folder = DriveApp.getFolderById(destination_id) 
+  var folder = DriveApp.getFolderById(destination_id)
   var new_doc = DriveApp.getFileById(source_id).makeCopy()
   new_doc.setName(filename)
   folder.addFile(new_doc)
@@ -89,7 +89,7 @@ function appendNamedRange(n_range, doc) {
       while (newtable.getNumRows() > 0) {
         var newrow = newtable.getRow(0).removeFromParent()
         // Skip empty strings
-        if (newrow.getText().replace(/\s/g, "").length != 0) { 
+        if (newrow.getText().replace(/\s/g, "").length != 0) {
           curr_table.appendTableRow(newrow)
         }
       }
@@ -105,12 +105,12 @@ function replaceText(n_range, doc) {
 
 function exportAsDocx(doc_name, doc_id, folder_id) {
   token = ScriptApp.getOAuthToken()
-  var blob = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + doc_id + '/export?mimeType=application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-      {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      }).getBlob()
+  var blob = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + doc_id + '/export?mimeType=application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    }).getBlob()
   var file = DriveApp.createFile(blob).setName(doc_name + '.docx')
   DriveApp.getFolderById(folder_id).addFile(file)
 }
